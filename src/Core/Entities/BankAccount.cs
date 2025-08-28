@@ -8,6 +8,8 @@ public class BankAccount
     private List<Transaction> _allTransactions = new List<Transaction>();
 
     // Campo de instancia: cada cuenta tiene su propio saldo
+
+    public int Id { get; }
     public string Number { get; }
     public string Owner { get; set; }
     public decimal Balance
@@ -23,14 +25,20 @@ public class BankAccount
             return balance;
         }
     }
+    private readonly decimal _minimumBalance;
 
-    public BankAccount(string name, decimal initialBalance)
+    public BankAccount(string name, decimal initialBalance) : this(name, initialBalance, 0) { }
+
+    public BankAccount(string name, decimal initialBalance, decimal minimumBalance)
     {
+        Id = s_accountNumberSeed;
         Number = s_accountNumberSeed.ToString();
         s_accountNumberSeed++;
 
         Owner = name;
-        MakeDeposit(initialBalance, DateTime.Now, "Initial balance");
+        _minimumBalance = minimumBalance;
+        if (initialBalance > 0)
+            MakeDeposit(initialBalance, DateTime.Now, "Initial balance");
     }
 
 
@@ -50,7 +58,7 @@ public class BankAccount
         {
             throw new ArgumentOutOfRangeException(nameof(amount), "Amount of withdrawal must be positive");
         }
-        if (Balance - amount < 0)
+        if (Balance - amount < _minimumBalance)
         {
             throw new InvalidOperationException("Not sufficient funds for this withdrawal");
         }
@@ -73,4 +81,8 @@ public class BankAccount
 
         return report.ToString();
     }
+
+    //virtual: declara un método que cualquier clase derivada puede optar por volver a implementar
+    //las clases derivadas pueden invalidar el comportamiento
+    public virtual void PerformMonthEndTransactions() { }
 }
